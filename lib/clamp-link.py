@@ -17,11 +17,13 @@ if __name__ == "__main__":
         clamp_embed = bindir + "/clamp-embed.py"
         obj_ext = ".obj"
         sl_ext = ".lib"
+        libpath_flag = "-libpath:"
     else:
         clamp_device = bindir + "/clamp-device"
         clamp_embed = bindir + "/clamp-embed"
         obj_ext = ".o"
         sl_ext = ".a"
+        libpath_flag = "-L"
 
     verbose = 0
     amdgpu_target_array = []
@@ -42,13 +44,14 @@ if __name__ == "__main__":
 
     if "--verbose" in args:
         verbose = 2
+        args.remove("--verbose")
 
     lib_search_paths = []
     for arg in args:
-        if arg.startswith("-L"):
-            real_path = os.path.realpath(arg[2:])
+        if arg.startswith(libpath_flag):
+            real_path = os.path.realpath(arg[len(libpath_flag):])
             if verbose == 2:
-                print("add library path: %s, canonical path: %s" % (arg[2:], real_path))
+                print("add library path: %s, canonical path: %s" % (arg[len(libpath_flag):], real_path))
             lib_search_paths.append(real_path)
 
     for arg in args:
@@ -69,9 +72,9 @@ if __name__ == "__main__":
         elif (arg.startswith("-l") or arg.endswith(sl_ext)):
             detected_static_library = ""
 
-            if arg.startswith("-l"):
+            if (arg.startswith("-l") or (arg.endswith("lib") and not arg.startswith("-defaultlib:"))):
                 if os.name == "nt":
-                    static_lib_name = arg[2:] + sl_ext
+                    static_lib_name = arg
                 else:
                     static_lib_name = "lib" + arg[2:] + sl_ext
 
@@ -93,7 +96,6 @@ if __name__ == "__main__":
                     if verbose == 2:
                         print("use %s specified at: %s" % (sl_ext, full_lib_path))
                     detected_static_library = full_lib_path
-
             if detected_static_library != "":
                 for lib in static_lib_list:
                     if lib == detected_static_library:
@@ -183,6 +185,9 @@ if __name__ == "__main__":
             kernel_undetected = p2.returncode
 
             if kernel_undetected == 0:
+                if verbose == 2:
+                    print("kernel detected in %s" % obj)
+
                 file = os.path.basename(obj)
                 filename = os.path.splitext(file)[0]
                 kernel_file = temp_dir + '/' + filename + ".kernel.bc"
@@ -276,7 +281,7 @@ if __name__ == "__main__":
             clang_offload_bundler_targets_args = "-targets=host-x86_64-unknown-linux"
 
         for amdgpu_target in amdgpu_target_array:
-            check_call(["python",
+            check_call(["python", 
                 clamp_device,
                 temp_dir + "/kernel.bc",
                 temp_dir + "/kernel-" + amdgpu_target + ".hsaco",
@@ -301,22 +306,21 @@ if __name__ == "__main__":
 
         if os.name == "nt":
             command = ["link",
-                "libcmt.lib",
-                "libcpmt.lib",
-                "msvcprt.lib",
-                "vcruntime.lib",
-                "/force:multiple",
-                "/ignore:4006",
-                "/subsystem:console",
-                "/out:saxpy.exe",
+                "-force:multiple",
+                "-ignore:4006",
+                "-ignore:4078",
+                "-ignore:4088",
+                "-subsystem:console",
                 temp_dir + "/kernel_hsa" + obj_ext]
         else:
-            command = ["ld", "--allow-multiple-definition", temp_dir + "/kernel_hsa" + obj_ext]
-            command += link_other_args
+            command = ["ld",
+                "--allow-multiple-definition",
+                temp_dir + "/kernel_hsa" + obj_ext]
 
+        command += link_other_args
         command += link_host_args
         command += link_cpu_args
-        call(command)
+        check_call(command)
 
         if os.path.isfile(temp_dir + "/kernel_hsa" + obj_ext):
             os.remove(temp_dir + "/kernel_hsa" + obj_ext)
@@ -343,3 +347,6 @@ if __name__ == "__main__":
             rmtree(temp_dir)
 
         exit(0)
+
+
+

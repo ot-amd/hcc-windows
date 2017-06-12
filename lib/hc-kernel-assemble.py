@@ -18,8 +18,10 @@ if __name__ == "__main__":
     libpath = bindir + "/../lib"
     if os.name == "nt":
         clamp_asm = bindir + "/clamp-assemble.py"
+        obj_ext = ".obj"
     else:
         clamp_asm = bindir + "/clamp-assemble"
+        obj_ext = ".o"
 
     if len(argv) != 3:
         print("Usage: %s kernel-bitcode kernel-object" % argv[0])
@@ -37,7 +39,7 @@ if __name__ == "__main__":
     temp_name = temp_dir + '/' + basename
 
     if os.path.isfile(argv[2]):
-        copyfile(argv[2], temp_name + ".tmp.o")
+        copyfile(argv[2], temp_name + ".tmp" + obj_ext)
         os.remove(argv[2])
 
     check_call([llvm_dis,
@@ -89,11 +91,11 @@ if __name__ == "__main__":
             "-o",
             temp_name + ".kernel_redirect.bc"])
         check_call(command + [temp_name + ".camp.s", "-emit-llvm"])
-        check_call(command + [temp_name + ".camp.o"])
+        check_call(command + [temp_name + ".camp" + obj_ext])
         check_call(["objcopy",
             "-R",
             ".kernel",
-            temp_name + ".camp.o"])
+            temp_name + ".camp" + obj_ext])
         check_call([llvm_link,
             temp_name + ".kernel_redirect.bc",
             temp_name + ".camp.s",
@@ -102,24 +104,25 @@ if __name__ == "__main__":
         check_call(["python",
             clamp_asm,
             kernel_input + ".bc",
-            temp_name + ".camp.o"])
+            temp_name + ".camp" + obj_ext])
     else:
         os.link(kernel_input, kernel_input + ".bc")
         check_call(["python",
             clamp_asm,
             kernel_input + ".bc",
-            temp_name + ".camp.o"])
-    if os.path.isfile(temp_dir + '/' + basename + ".tmp.o"):
+            temp_name + ".camp" + obj_ext])
+    if os.path.isfile(temp_dir + '/' + basename + ".tmp" + obj_ext):
         check_call(["ld",
             "-r",
             "--allow-multiple-definition",
-            temp_dir + '/' + basename + ".tmp.o",
-            temp_name + ".camp.o",
+            temp_dir + '/' + basename + ".tmp" + obj_ext,
+            temp_name + ".camp" + obj_ext,
             "-o",
             argv[2]])
     else:
-        copyfile(temp_name + ".camp.o", argv[2])
-        os.remove(temp_name + ".camp.o")
+        copyfile(temp_name + ".camp" + obj_ext, argv[2])
+        os.remove(temp_name + ".camp" + obj_ext)
 
     rmtree(temp_dir)
     exit(0)
+
