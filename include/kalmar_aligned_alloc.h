@@ -7,7 +7,11 @@
 
 #pragma once
 
-#include <memory>
+#ifdef linux //linux
+	#include <memory>
+#elif _WIN32 //windows
+	#include <malloc.h>
+#endif
 #include <stdlib.h>
 
 /** \cond HIDDEN_SYMBOLS */
@@ -27,8 +31,12 @@ inline void* kalmar_aligned_alloc(std::size_t alignment, std::size_t size) noexc
     }
     void* memptr = NULL;
     // posix_memalign shall return 0 upon successfully allocate aligned memory
-    posix_memalign(&memptr, alignment, size);
-    assert(memptr);
+	#ifdef linux //linux
+		posix_memalign(&memptr, alignment, size);
+	#elif _WIN32 //windows
+		memptr = _aligned_malloc(alignment, size);
+	#endif
+	assert(memptr);
 
     return memptr;
 }
@@ -41,3 +49,4 @@ inline void kalmar_aligned_free(void* ptr) noexcept {
 
 } // namespace Kalmar
 /** \endcond */
+
