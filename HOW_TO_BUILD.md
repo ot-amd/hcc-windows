@@ -6,7 +6,7 @@ HCC on Windows
 - Open the Developer Command Prompt for VS2015 (installed with Visual Studio 2015)
 - Create a `build_compiler` folder in the `hcc` folder
 - Run the CMake command to generate the Visual Studio project for LLVM+Clang
-`cmake -G "Visual Studio 14" ../compiler`
+`cmake -DLLVM_TARGETS_TO_BUILD="X86;AMDGPU" -G "Visual Studio 14" ../compiler`
 - In the `build_compiler` folder, open `LLVM.sln`
 - Change the build type from `Debug` to `Release` in the Visual Studio toolbar
 - In the `Solution Explorer`, build the `ALL_BUILD` solution
