@@ -26,14 +26,22 @@ if __name__ == "__main__":
         filename = file
 
     if file != filename:
-        check_call(["OPT",
-            "-load",
-            lib + "/LLVMCpuRename.so",
-            "-cpu-rename",
-            argv[1],
-            "-S",
-            "-o",
-            argv[1] + ".S"])
+        if os.name == "nt":
+            check_call(["OPT",
+                "-cpu-rename",
+                argv[1],
+                "-S",
+                "-o",
+                argv[1] + ".S"])
+        else:
+            check_call(["OPT",
+                "-load",
+                lib + "/LLVMCpuRename.so",
+                "-cpu-rename",
+                argv[1],
+                "-S",
+                "-o",
+                argv[1] + ".S"])
         check_call(["-O=2",
             argv[1] + ".S",
             "-relocation-model=pic",

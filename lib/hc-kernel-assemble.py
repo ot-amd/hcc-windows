@@ -55,13 +55,20 @@ if __name__ == "__main__":
         f1 = open("/dev/null", "wb")
         ext = ".so"
     f2 = open(temp_name + ".kernel_redirect.ll", "wb")
-    p = Popen([opt,
-        "-load",
-        libpath + "/LLVMDirectFuncCall" + ext],
-        #"-redirect"],
-        stdin = f0,
-        stdout = f1,
-        stderr = f2)
+    if os.name == "nt":
+            p = Popen([opt,
+            "-redirect"],
+            stdin = f0,
+            stdout = f1,
+            stderr = f2)
+    else:
+        p = Popen([opt,
+            "-load",
+            libpath + "/LLVMDirectFuncCall" + ext,
+            "-redirect"],
+            stdin = f0,
+            stdout = f1,
+            stderr = f2)
     p.wait()
     f0.close()
     f1.close()
@@ -69,18 +76,23 @@ if __name__ == "__main__":
 
     if os.path.isfile(temp_name + ".kernel_redirect.ll") and (os.stat(temp_name + ".kernel_redirect.ll").st_size != 0):
         f0 = open(temp_name + ".ll", "rb")
+        f2 = open(temp_name + ".camp.cpp", "wb")
         if os.name == "nt":
             f1 = open("nul", "ab")
+            p = Popen([opt,
+                "-gensrc"],
+                stdin = f0,
+                stdout = f1,
+                stderr = f2)
         else:
             f1 = open("/dev/null", "ab")
-        f2 = open(temp_name + ".camp.cpp", "wb")
-        p = Popen([opt,
-            "-load",
-            libpath + "/LLVMWrapperGen.so",
-            "-gensrc"],
-            stdin = f0,
-            stdout = f1,
-            stderr = f2)
+            p = Popen([opt,
+                "-load",
+                libpath + "/LLVMWrapperGen.so",
+                "-gensrc"],
+                stdin = f0,
+                stdout = f1,
+                stderr = f2)
         p.wait()
         f0.close()
         f1.close()

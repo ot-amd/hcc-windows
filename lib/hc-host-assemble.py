@@ -50,13 +50,20 @@ if __name__ == "__main__":
         f1 = open("/dev/null", "ab")
         ext = ".so"
     f2 = open(temp_name + ".host_redirect.ll", "wb")
-    check_call([opt,
-        "-load",
-        libpath + "/LLVMDirectFuncCall" + ext],
-        #"-redirect",
-        #"-host"],
-        stdin = f0,
-        stdout = f1)
+    if os.name == "nt":
+        check_call([opt,
+            "-redirect",
+            "-host"],
+            stdin = f0,
+            stdout = f1)
+    else:
+        check_call([opt,
+            "-load",
+            libpath + "/LLVMDirectFuncCall" + ext,
+            "-redirect",
+            "-host"],
+            stdin = f0,
+            stdout = f1)
     f0.close()
     f1.close()
     f2.close()

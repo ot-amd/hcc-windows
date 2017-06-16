@@ -65,23 +65,31 @@ if __name__ == "__main__":
             amdgpu_target = arg[16:]
 
     # Invoke HCC-specific opt passes
-    # f = open(argv[1], "rb")
-    # p = Popen([opt,
-    #     "-load",
-    #     lib + "/LLVMEraseNonkernel" + sl_ext,
-    #     "-erase-nonkernels",
-    #     "-dce",
-    #     "-globaldce",
-    #     "-o",
-    #     argv[2] + ".promote.bc"],
-    #     stdin = f)
-    # p.wait()
-    # f.close()
-    # retval = p.returncode
-    # if retval != 0:
-    #     print("Generating AMD GCN kernel failed in HCC-specific opt passes for target: %s" % amdgpu_target)
-    #     exit(retval)
-    copyfile(argv[1], argv[2] + ".promote.bc")
+    f = open(argv[1], "rb")
+    if os.name == "nt":
+        p = Popen([opt,
+            "-erase-nonkernels",
+            "-dce",
+            "-globaldce",
+            "-o",
+            argv[2] + ".promote.bc"],
+            stdin = f)
+    else:
+        p = Popen([opt,
+            "-load",
+            lib + "/LLVMEraseNonkernel" + sl_ext,
+            "-erase-nonkernels",
+            "-dce",
+            "-globaldce",
+            "-o",
+            argv[2] + ".promote.bc"],
+            stdin = f)
+    p.wait()
+    f.close()
+    retval = p.returncode
+    if retval != 0:
+        print("Generating AMD GCN kernel failed in HCC-specific opt passes for target: %s" % amdgpu_target)
+        exit(retval)
 
     hcc_extra_arch_file = ""
 
