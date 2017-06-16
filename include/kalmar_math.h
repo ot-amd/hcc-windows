@@ -727,23 +727,23 @@ namespace fast_math {
     #endif
   }
 
-  inline void host_sincosf(float x, float *s, float *c) restrict(cpu) { ::sincosf(x, s, c); }
-  inline void sincosf(float x, float *s, float *c) restrict(amp, cpu) {
-    #if __KALMAR_ACCELERATOR__ == 1
-      *s = __hc_sincos(x, c);
-    #else
-      host_sincosf(x, s, c);
-    #endif
-  }
+  // inline void host_sincosf(float x, float *s, float *c) restrict(cpu) { ::sincosf(x, s, c); }
+  // inline void sincosf(float x, float *s, float *c) restrict(amp, cpu) {
+  //   #if __KALMAR_ACCELERATOR__ == 1
+  //     *s = __hc_sincos(x, c);
+  //   #else
+  //     host_sincosf(x, s, c);
+  //   #endif
+  // }
 
-  inline void host_sincos(float x, float *s, float *c) restrict(cpu) { ::sincosf(x, s, c); }
-  inline void sincos(float x, float *s, float *c) restrict(amp, cpu) {
-    #if __KALMAR_ACCELERATOR__ == 1
-      *s = __hc_sincos(x, c);
-    #else
-      host_sincos(x, s, c);
-    #endif
-  }
+  // inline void host_sincos(float x, float *s, float *c) restrict(cpu) { ::sincosf(x, s, c); }
+  // inline void sincos(float x, float *s, float *c) restrict(amp, cpu) {
+  //   #if __KALMAR_ACCELERATOR__ == 1
+  //     *s = __hc_sincos(x, c);
+  //   #else
+  //     host_sincos(x, s, c);
+  //   #endif
+  // }
 
   inline float host_sinhf(float x) restrict(cpu) { return std::sinh(x); }
   inline float sinhf(float x) restrict(amp, cpu) {
@@ -2414,32 +2414,32 @@ namespace fast_math {
     #endif
   }
 
-  inline void host_sincosf(float x, float *s, float *c) restrict(cpu) { ::sincosf(x, s, c); }
-  inline void sincosf(float x, float *s, float *c) restrict(amp, cpu) {
-    #if __KALMAR_ACCELERATOR__ == 1
-      *s = __hc_sincos(x, c);
-    #else
-      host_sincosf(x, s, c);
-    #endif
-  }
+  // inline void host_sincosf(float x, float *s, float *c) restrict(cpu) { ::sincosf(x, s, c); }
+  // inline void sincosf(float x, float *s, float *c) restrict(amp, cpu) {
+  //   #if __KALMAR_ACCELERATOR__ == 1
+  //     *s = __hc_sincos(x, c);
+  //   #else
+  //     host_sincosf(x, s, c);
+  //   #endif
+  // }
 
-  inline void host_sincos(float x, float *s, float *c) restrict(cpu) { ::sincosf(x, s, c); }
-  inline void sincos(float x, float *s, float *c) restrict(amp, cpu) {
-    #if __KALMAR_ACCELERATOR__ == 1
-      *s = __hc_sincos(x, c);
-    #else
-      host_sincos(x, s, c);
-    #endif
-  }
+  // inline void host_sincos(float x, float *s, float *c) restrict(cpu) { ::sincosf(x, s, c); }
+  // inline void sincos(float x, float *s, float *c) restrict(amp, cpu) {
+  //   #if __KALMAR_ACCELERATOR__ == 1
+  //     *s = __hc_sincos(x, c);
+  //   #else
+  //     host_sincos(x, s, c);
+  //   #endif
+  // }
 
-  inline void host_sincos(double x, double *s, double *c) restrict(cpu) { ::sincos(x, s, c); }
-  inline void sincos(double x, double *s, double *c) restrict(amp, cpu) {
-    #if __KALMAR_ACCELERATOR__ == 1
-      *s = __hc_sincos_double(x, c);
-    #else
-      host_sincos(x, s, c);
-    #endif
-  }
+  // inline void host_sincos(double x, double *s, double *c) restrict(cpu) { ::sincos(x, s, c); }
+  // inline void sincos(double x, double *s, double *c) restrict(amp, cpu) {
+  //   #if __KALMAR_ACCELERATOR__ == 1
+  //     *s = __hc_sincos_double(x, c);
+  //   #else
+  //     host_sincos(x, s, c);
+  //   #endif
+  // }
 
   inline float host_sinhf(float x) restrict(cpu) { return std::sinh(x); }
   inline float sinhf(float x) restrict(amp, cpu) {
