@@ -2,7 +2,7 @@ HCC on Windows
 ======================
 - Clone `hcc-windows`
 `git clone --recursive -b windows https://github.com/otauqir/hcc-windows.git `
-- Copy the `clang` folder to the `compiler/tools` folder
+- Copy the `clang` and `lld` folders to the `compiler/tools` folder
 - Open the Developer Command Prompt for VS2015 (installed with Visual Studio 2015)
 - Create a `build_compiler` folder in the `hcc` folder
 - Run the CMake command to generate the Visual Studio project for LLVM+Clang
@@ -14,6 +14,7 @@ HCC on Windows
 - Download `binutils` from `https://www.gnu.org/software/binutils/` into the `GnuWin32` folder
 - Add the `GnuWin32` folder to the Windows environment variables path
 - Copy the Python scripts to the `Release/bin` folder
+- Copy the `rocdl` folder to the `Release/bin` folder
 
 
 Use the following command to build mcwamp.cpp
