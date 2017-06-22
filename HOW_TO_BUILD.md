@@ -11,7 +11,7 @@ HCC on Windows
 - Change the build type from `Debug` to `Release` in the Visual Studio toolbar
 - In the `Solution Explorer`, build the `ALL_BUILD` solution
 - Download and install `GnuWin32` from `http://getgnuwin32.sourceforge.net/`
-- Download `binutils` from `https://www.gnu.org/software/binutils/` into the `GnuWin32` folder
+- Download `binutils` from `https://sourceforge.net/projects/mingw/files/MinGW/Base/binutils/binutils-2.28/` into the `GnuWin32` folder. Download the `-bin.tar.xz` archive and extract it.
 - Add the `GnuWin32` folder to the Windows environment variables path
 - Copy the Python scripts to the `Release/bin` folder
 - Copy the `rocdl` folder to the `Release/bin` folder
