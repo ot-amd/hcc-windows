@@ -53,6 +53,26 @@ if __name__ == "__main__":
             if verbose == 2:
                 print("add library path: %s, canonical path: %s" % (arg[len(libpath_flag):], real_path))
             lib_search_paths.append(real_path)
+    l = []
+    for arg in args:
+        if arg.endswith(".rar"):
+            l.append(arg)
+            current_dir = os.getcwd()
+            rar_temp_dir = temp_dir + '/' + os.path.splitext(arg)[0]
+            os.mkdir(rar_temp_dir)
+            os.chdir(rar_temp_dir)
+            check_call(["unrar",
+                "e",
+                current_dir + '/' + arg])
+            os.chdir(current_dir)
+
+            for f in os.listdir(rar_temp_dir):
+                if f.endswith(".kernel.bc"):
+                    link_kernel_args.append(rar_temp_dir + '/' + f)
+                elif f.endswith(".host.obj"):
+                    link_host_args.append(rar_temp_dir + '/' + f)
+    for arg in l:
+        args.remove(arg)
 
     for arg in args:
         if arg.startswith("--amdgpu-target="):
@@ -200,7 +220,6 @@ if __name__ == "__main__":
                     ".kernel",
                     obj,
                     kernel_file])
-
                 check_call(["objcopy",
                     "-R",
                     ".kernel",
@@ -331,7 +350,7 @@ if __name__ == "__main__":
         if os.path.isfile(temp_dir + "/kernel.bundle"):
             os.remove(temp_dir + "/kernel.bundle")
         for f in os.listdir(temp_dir):
-            if f[-6] == ".hsaco":
+            if f.endswith(".hsaco"):
                 os.remove(temp_dir + '/' + f)
         if os.path.isfile(temp_dir + "kernel.bc"):
             os.remove(temp_dir + "kernel.bc")

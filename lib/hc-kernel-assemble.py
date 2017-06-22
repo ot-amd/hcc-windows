@@ -124,13 +124,26 @@ if __name__ == "__main__":
             kernel_input + ".bc",
             temp_name + ".camp" + obj_ext])
     if os.path.isfile(temp_dir + '/' + basename + ".tmp" + obj_ext):
-        check_call(["ld",
-            "-r",
-            "--allow-multiple-definition",
-            temp_dir + '/' + basename + ".tmp" + obj_ext,
-            temp_name + ".camp" + obj_ext,
-            "-o",
-            argv[2]])
+        if os.name == "nt":
+            if os.path.isfile(os.path.splitext(argv[2])[0] + ".rar"):
+                os.remove(os.path.splitext(argv[2])[0] + ".rar")
+            copyfile(temp_name + ".camp" + obj_ext, os.path.splitext(argv[2])[0] + ".kernel.bc")
+            copyfile(temp_dir + '/' + basename + ".tmp" + obj_ext, os.path.splitext(argv[2])[0] + ".host.obj")
+            check_call(["rar",
+                "a",
+                "-df",
+                "-ep",
+                os.path.splitext(argv[2])[0] + ".rar",
+                os.path.splitext(argv[2])[0] + ".host.obj",
+                os.path.splitext(argv[2])[0] + ".kernel.bc"])
+        else:
+            check_call(["ld",
+                "-r",
+                "--allow-multiple-definition",
+                temp_dir + '/' + basename + ".tmp" + obj_ext,
+                temp_name + ".camp" + obj_ext,
+                "-o",
+                argv[2]])
     else:
         copyfile(temp_name + ".camp" + obj_ext, argv[2])
         os.remove(temp_name + ".camp" + obj_ext)

@@ -6,7 +6,7 @@ from sys import argv, exit
 import os
 from subprocess import Popen, check_call
 from tempfile import mkdtemp
-from shutil import rmtree
+from shutil import rmtree, copyfile
 
 if __name__ == "__main__":
 
