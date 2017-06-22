@@ -129,10 +129,12 @@ if __name__ == "__main__":
                 os.remove(os.path.splitext(argv[2])[0] + ".rar")
             copyfile(temp_name + ".camp" + obj_ext, os.path.splitext(argv[2])[0] + ".kernel.bc")
             copyfile(temp_dir + '/' + basename + ".tmp" + obj_ext, os.path.splitext(argv[2])[0] + ".host.obj")
+
             check_call(["rar",
                 "a",
                 "-df",
                 "-ep",
+                "-inul",
                 os.path.splitext(argv[2])[0] + ".rar",
                 os.path.splitext(argv[2])[0] + ".host.obj",
                 os.path.splitext(argv[2])[0] + ".kernel.bc"])

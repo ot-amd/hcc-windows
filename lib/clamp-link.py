@@ -61,9 +61,12 @@ if __name__ == "__main__":
             rar_temp_dir = temp_dir + '/' + os.path.splitext(arg)[0]
             os.mkdir(rar_temp_dir)
             os.chdir(rar_temp_dir)
+
             check_call(["unrar",
                 "e",
+                "-inul",
                 current_dir + '/' + arg])
+
             os.chdir(current_dir)
 
             for f in os.listdir(rar_temp_dir):
@@ -131,18 +134,25 @@ if __name__ == "__main__":
                     print("processing static library %s" % detected_static_library)
 
                 if os.name == "nt":
+                    f = open("nul", "wb")
                     p1 = Popen(["dumpbin",
                         detected_static_library],
                         stdout = PIPE)
+                    
+                    p2 = Popen(["findstr",
+                        "\.kernel"],
+                        stdin = p1.stdout,
+                        stdout = f)
+                    f.close()
                 else:
                     p1 = Popen(["objdump",
                         "-t",
                         detected_static_library],
                         stdout = PIPE)
-                p2 = Popen(["grep",
-                    "-q",
-                    "\.kernel"],
-                    stdin=p1.stdout)
+                    p2 = Popen(["grep",
+                        "-q",
+                        "\.kernel"],
+                        stdin = p1.stdout)
                 p1.stdout.close()
                 p2.wait()
                 kernel_undetected = p2.returncode
@@ -188,18 +198,24 @@ if __name__ == "__main__":
                 print("processing %s" % obj)
 
             if os.name == "nt":
+                f = open("nul", "wb")
                 p1 = Popen(["dumpbin",
                     obj],
                     stdout = PIPE)
+                p2 = Popen(["findstr",
+                    "\.kernel"],
+                    stdin = p1.stdout,
+                    stdout = f)
+                f.close()
             else:
                 p1 = Popen(["objdump",
                     "-t",
                     obj],
                     stdout = PIPE)
-            p2 = Popen(["grep",
-                "-q",
-                "\.kernel"],
-                stdin=p1.stdout)
+                p2 = Popen(["grep",
+                    "-q",
+                    "\.kernel"],
+                    stdin=p1.stdout)
             p1.stdout.close()
             p2.wait()
             kernel_undetected = p2.returncode
@@ -226,39 +242,39 @@ if __name__ == "__main__":
                     obj,
                     host_file])
 
-                if os.name == "nt":
-                    err = open("nul", "ab")
-                else:
-                    err = open("/dev/null", 'ab')
+                # if os.name == "nt":
+                #     err = open("nul", "ab")
+                # else:
+                #     err = open("/dev/null", 'ab')
 
-                call(["objcopy",
-                    '@' + cxxamp_serialize_symbol_file,
-                    host_file,
-                    host_file + ".new"],
-                    stderr = err)
+                # call(["objcopy",
+                #     '@' + cxxamp_serialize_symbol_file,
+                #     host_file,
+                #     host_file + ".new"],
+                #     stderr = err)
 
-                if os.path.isfile(host_file + ".new"):
-                    copyfile(host_file + ".new", host_file)
-                    os.remove(host_file + ".new")
+                # if os.path.isfile(host_file + ".new"):
+                #     copyfile(host_file + ".new", host_file)
+                #     os.remove(host_file + ".new")
 
-                f = open(cxxamp_serialize_symbol_file, 'a')
-                p1 = Popen(["objdump",
-                    "-t",
-                    host_file,
-                    "-j",
-                    ".text"],
-                    stderr = err,
-                    stdout = PIPE)
-                p2 = Popen(["grep",
-                    "g.*__cxxamp_serialize"],
-                    stdin = p1.stdout,
-                    stdout = PIPE)
-                p3 = Popen(["awk",
-                    "{print \"-L\"$6}"],
-                    stdin = p2.stdout,
-                    stdout = f)
-                p3.wait()
-                f.close()
+                # f = open(cxxamp_serialize_symbol_file, 'a')
+                # p1 = Popen(["objdump",
+                #     "-t",
+                #     host_file,
+                #     "-j",
+                #     ".text"],
+                #     stderr = err,
+                #     stdout = PIPE)
+                # p2 = Popen(["grep",
+                #     "g.*__cxxamp_serialize"],
+                #     stdin = p1.stdout,
+                #     stdout = PIPE)
+                # p3 = Popen(["awk",
+                #     "{print \"-L\"$6}"],
+                #     stdin = p2.stdout,
+                #     stdout = f)
+                # p3.wait()
+                # f.close()
 
                 link_kernel_args.append(kernel_file)
                 link_host_args.append(host_file)
