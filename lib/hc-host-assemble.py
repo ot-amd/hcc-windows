@@ -81,6 +81,7 @@ if __name__ == "__main__":
         os.link(argv[1], argv[1] + ".bc")
         command.append(argv[1] + ".bc")
         check_call(command)
+        os.remove(argv[1] + ".bc")
 
     rmtree(temp_dir)
     exit(0)
