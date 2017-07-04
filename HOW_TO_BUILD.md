@@ -13,6 +13,8 @@ HCC on Windows
 - Download and install `GnuWin32` from `http://getgnuwin32.sourceforge.net/`
 - Download `binutils` from `https://sourceforge.net/projects/mingw/files/MinGW/Base/binutils/binutils-2.28/` into the `GnuWin32` folder. Download the `-bin.tar.xz` archive and extract it.
 - Add the `GnuWin32` folder to the Windows environment variables path
+- In the `lib` folder, compile `inject_kernel.cpp` using the following command - `cl inject_kernel.cpp /EHsc`
+- Copy `inject_kernel.exe` to the `Release/bin` folder
 - Copy the Python scripts to the `Release/bin` folder
 - Copy the `rocdl` folder to the `Release/bin` folder
 
@@ -40,12 +42,9 @@ clang++ ^
 -w ^
 -v ^
 -o mcwamp.obj ^
-mcwamp.cpp < nul ^
-&& ^
-ar qc mcwamp.lib  mcwamp.obj < nul ^
-&& ^
-ranlib mcwamp.lib
 ```
+
+- Copy `mcwamp.rar` to the `Release/lib` folder
 
 
 Use the following command to build saxpy.cpp
