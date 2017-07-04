@@ -28,20 +28,37 @@ if __name__ == "__main__":
         copyfile(argv[2], argv[2] + ".host" + obj_ext)
         os.remove(argv[2])
 
-        check_call(["python",
-            embed,
-            argv[1],
-            argv[2] + ".kernel" + obj_ext])
+        if os.name == "nt":
+            if os.path.isfile(os.path.splitext(argv[2])[0] + ".rar"):
+                os.remove(os.path.splitext(argv[2])[0] + ".rar")
+            copyfile(argv[1], os.path.splitext(argv[2])[0] + ".kernel.bc")
+            os.remove(argv[1])
+            copyfile(argv[2] + ".host" + obj_ext, os.path.splitext(argv[2])[0] + ".host.obj")
+            os.remove(argv[2] + ".host" + obj_ext)
 
-        check_call(["ld",
-            "-r",
-            argv[2] + ".kernel" + obj_ext,
-            argv[2] + ".host" + obj_ext,
-            "-o",
-            argv[2]])
+            check_call(["rar",
+                "a",
+                "-df",
+                "-ep",
+                "-inul",
+                os.path.splitext(argv[2])[0] + ".rar",
+                os.path.splitext(argv[2])[0] + ".kernel.bc",
+                os.path.splitext(argv[2])[0] + ".host.obj"])
+        else:
+            check_call(["python",
+                embed,
+                argv[1],
+                argv[2] + ".kernel" + obj_ext])
 
-        os.remove(argv[2] + ".kernel" + obj_ext)
-        os.remove(argv[2] + ".host" + obj_ext)
+            check_call(["ld",
+                "-r",
+                argv[2] + ".kernel" + obj_ext,
+                argv[2] + ".host" + obj_ext,
+                "-o",
+                argv[2]])
+
+            os.remove(argv[2] + ".kernel" + obj_ext)
+            os.remove(argv[2] + ".host" + obj_ext)
     else:
         check_call(["python",
             embed,

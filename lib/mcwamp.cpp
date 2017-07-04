@@ -52,8 +52,8 @@ const wchar_t accelerator::default_accelerator[] = L"default";
 // weak symbols of kernel codes
 
 // Kernel bundle
-extern "C" char * kernel_bundle_source[] asm ("_binary_kernel_bundle_start") __attribute__((weak));
-extern "C" char * kernel_bundle_end[] asm ("_binary_kernel_bundle_end") __attribute__((weak));
+extern char const *kernel_binary_data;
+
 
 // interface of HCC runtime implementation
 struct RuntimeImpl {
@@ -153,7 +153,7 @@ private:
  */
 class HSAPlatformDetect : public PlatformDetect {
 public:
-  HSAPlatformDetect() : PlatformDetect("HSA", "libmcwamp_hsa.so",  kernel_bundle_source) {}
+  HSAPlatformDetect() : PlatformDetect("HSA", "libmcwamp_hsa.so",  (char *)kernel_binary_data + sizeof(int)) {}
 };
 
 
@@ -296,12 +296,10 @@ inline void DetermineAndGetProgram(KalmarQueue* pQueue, size_t* kernel_size, voi
 
   // walk through bundle header
   // get bundle file size
-  size_t bundle_size =
-    (std::ptrdiff_t)((void *)kernel_bundle_end) -
-    (std::ptrdiff_t)((void *)kernel_bundle_source);
+  size_t bundle_size = (size_t) *((int *)kernel_binary_data);
 
   // point to bundle file data
-  const char *data = (const char *)kernel_bundle_source;
+  const char *data = kernel_binary_data + sizeof(int);
 
   // skip OFFLOAD_BUNDLER_MAGIC_STR
   size_t pos = 0;
@@ -320,7 +318,7 @@ inline void DetermineAndGetProgram(KalmarQueue* pQueue, size_t* kernel_size, voi
   }
   uint64_t NumberOfBundles = Read8byteIntegerFromBuffer(data, pos);
   pos += 8;
-
+  std::cout << "NumberOfBundles: " << NumberOfBundles << std::endl;
   for (uint64_t i = 0; i < NumberOfBundles; ++i) {
     // Read offset.
     if (pos + 8 > bundle_size) {
@@ -328,14 +326,14 @@ inline void DetermineAndGetProgram(KalmarQueue* pQueue, size_t* kernel_size, voi
     }
     uint64_t Offset = Read8byteIntegerFromBuffer(data, pos);
     pos += 8;
-
+    std::cout << i << " Offset: " << Offset << std::endl;
     // Read size.
     if (pos + 8 > bundle_size) {
       RUNTIME_ERROR(1, "Fail to parse bundle size", __LINE__)
     }
     uint64_t Size = Read8byteIntegerFromBuffer(data, pos);
     pos += 8;
-
+    std::cout << i << " Size: " << Size << std::endl;
     // Read triple size.
     if (pos + 8 > bundle_size) {
       RUNTIME_ERROR(1, "Fail to parse triple size", __LINE__)

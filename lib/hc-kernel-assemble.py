@@ -1,140 +1,89 @@
 #!/usr/bin/python
 
-#hc-kernel-assemble kernel-bitcode kernel-object
+#hc-kernel-assemble kernel-bitcode
 
 import os
 from sys import argv, exit
 from tempfile import mkdtemp
-from subprocess import Popen, check_call
+from subprocess import Popen, check_call, PIPE
 from shutil import rmtree, copyfile
 
 if __name__ == "__main__":
     bindir = os.path.dirname(argv[0])
+    clamp_device = bindir + "/clamp-device.py"
+    clang_offload_bundler = bindir + "/clang-offload-bundler"
     clang = bindir + "/clang"
     llvm_link = bindir + "/llvm-link"
     opt = bindir + "/opt"
-    llvm_as = bindir + "/llvm-as"
-    llvm_dis = bindir + "/llvm-dis"
     libpath = bindir + "/../lib"
-    if os.name == "nt":
-        clamp_asm = bindir + "/clamp-assemble.py"
-        obj_ext = ".obj"
-    else:
-        clamp_asm = bindir + "/clamp-assemble"
-        obj_ext = ".o"
+    amdgpu_target = "gfx803"
 
-    if len(argv) != 3:
-        print("Usage: %s kernel-bitcode kernel-object" % argv[0])
+    if len(argv) != 2:
+        print("Usage: %s kernel-bitcode" % argv[0])
         exit(1)
 
-    kernel_input = argv[1]
-    command = [clang, "-std=c++amp", "-I" + bindir + "/../../include", "-fPIC", "-O3", "-c", "-o"]
-
-    if not os.path.isfile(kernel_input):
-        print("kernel-bitcode %s is not valid" % kernel_input)
+    if not os.path.isfile(argv[1]):
+        print("kernel-bitcode %s is not valid" % argv[1])
         exit(1)
 
-    temp_dir = mkdtemp()
-    basename = os.path.basename(argv[2])
-    temp_name = temp_dir + '/' + basename
+    if not os.path.isfile(libpath + "/mcwamp.rar"):
+        print("Can't find mcwamp.rar")
+        exit(1)
 
-    if os.path.isfile(argv[2]):
-        copyfile(argv[2], temp_name + ".tmp" + obj_ext)
-        os.remove(argv[2])
-
-    check_call([llvm_dis,
-        kernel_input,
+    if (os.path.isfile("mcwamp.host.obj")):
+        os.remove("mcwamp.host.obj")
+    if (os.path.isfile("mcwamp.kernel.bc")):
+        os.remove("mcwamp.kernel.bc")
+    check_call(["unrar",
+                "e",
+                "-inul",
+                libpath + "/mcwamp.rar"])
+    
+    p1 = Popen([llvm_link,
+        "mcwamp.kernel.bc",
+        argv[1]],
+        stdout = PIPE)
+    p2 = Popen([opt,
+        "-always-inline",
+        "-",
         "-o",
-        temp_name + ".ll"])
+        "kernel.bc"],
+        stdin = p1.stdout)
+    p2.wait()
+    
+    open("empty.obj", "w").close()
+    clang_offload_bundler_input_args = "-inputs=empty.obj"
+    clang_offload_bundler_targets_args = "-targets=host-i686-pc-windows-msvc"
+    check_call(["python",
+        clamp_device,
+        "kernel.bc",
+        "kernel-" + amdgpu_target + ".hsaco",
+        "--amdgpu-target=" + amdgpu_target])
+    clang_offload_bundler_input_args += ",kernel-" + amdgpu_target + ".hsaco"
+    clang_offload_bundler_targets_args += ",hcc-amdgcn--amdhsa-" + amdgpu_target
 
-    f0 = open(temp_name + ".ll", "rb")
-    if os.name == "nt":
-        f1 = open("nul", "wb")
-        ext = ".dll"
-    else:
-        f1 = open("/dev/null", "wb")
-        ext = ".so"
-    f2 = open(temp_name + ".kernel_redirect.ll", "wb")
-    if os.name == "nt":
-            p = Popen([opt,
-            "-redirect"],
-            stdin = f0,
-            stdout = f1,
-            stderr = f2)
-    else:
-        p = Popen([opt,
-            "-load",
-            libpath + "/LLVMDirectFuncCall" + ext,
-            "-redirect"],
-            stdin = f0,
-            stdout = f1,
-            stderr = f2)
-    p.wait()
-    f0.close()
-    f1.close()
-    f2.close()
+    check_call([clang_offload_bundler,
+            "-type=o",
+            clang_offload_bundler_input_args,
+            clang_offload_bundler_targets_args,
+            "-outputs=kernel.bundle"])
 
-    if os.path.isfile(temp_name + ".kernel_redirect.ll") and (os.stat(temp_name + ".kernel_redirect.ll").st_size != 0):
-        f0 = open(temp_name + ".ll", "rb")
-        f2 = open(temp_name + ".camp.cpp", "wb")
-        if os.name == "nt":
-            f1 = open("nul", "ab")
-            p = Popen([opt,
-                "-gensrc"],
-                stdin = f0,
-                stdout = f1,
-                stderr = f2)
-        else:
-            f1 = open("/dev/null", "ab")
-            p = Popen([opt,
-                "-load",
-                libpath + "/LLVMWrapperGen.so",
-                "-gensrc"],
-                stdin = f0,
-                stdout = f1,
-                stderr = f2)
-        p.wait()
-        f0.close()
-        f1.close()
-        f2.close()
-
-        check_call([llvm_as,
-            temp_name + ".kernel_redirect.ll",
-            "-o",
-            temp_name + ".kernel_redirect.bc"])
-        check_call(command + [temp_name + ".camp.s", "-emit-llvm"])
-        check_call(command + [temp_name + ".camp" + obj_ext])
-        check_call(["objcopy",
-            "-R",
-            ".kernel",
-            temp_name + ".camp" + obj_ext])
-        check_call([llvm_link,
-            temp_name + ".kernel_redirect.bc",
-            temp_name + ".camp.s",
-            "-o",
-            temp_name + ".link.bc"])
-        check_call(["python",
-            clamp_asm,
-            kernel_input + ".bc",
-            temp_name + ".camp" + obj_ext])
-    else:
-        os.link(kernel_input, kernel_input + ".bc")
-        check_call(["python",
-            clamp_asm,
-            kernel_input + ".bc",
-            temp_name + ".camp" + obj_ext])
-    if os.path.isfile(temp_dir + '/' + basename + ".tmp" + obj_ext):
-        check_call(["ld",
-            "-r",
-            "--allow-multiple-definition",
-            temp_dir + '/' + basename + ".tmp" + obj_ext,
-            temp_name + ".camp" + obj_ext,
-            "-o",
-            argv[2]])
-    else:
-        copyfile(temp_name + ".camp" + obj_ext, argv[2])
-        os.remove(temp_name + ".camp" + obj_ext)
-
-    rmtree(temp_dir)
+    source_code = os.path.basename(argv[1][:argv[1].rfind("-")]) + ".cpp"
+    check_call(["inject_kernel",
+        "kernel.bundle",
+        "kernel_bundle_data.cpp"])
+    check_call(["cl",
+        "kernel_bundle_data.cpp",
+        "/nologo",
+        "/c",
+        "/EHsc"])
+    
+    os.remove("kernel_bundle_data.cpp")
+    os.remove("mcwamp.host.obj")
+    os.remove("mcwamp.kernel.bc")
+    os.remove("kernel.bc")
+    os.remove("empty.obj")
+    os.remove("kernel-" + amdgpu_target + ".hsaco")
+    os.remove("kernel.bundle")
     exit(0)
 

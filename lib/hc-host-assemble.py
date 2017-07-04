@@ -6,7 +6,7 @@ from sys import argv, exit
 import os
 from subprocess import Popen, check_call
 from tempfile import mkdtemp
-from shutil import rmtree
+from shutil import rmtree, copyfile
 
 if __name__ == "__main__":
 
@@ -81,6 +81,7 @@ if __name__ == "__main__":
         os.link(argv[1], argv[1] + ".bc")
         command.append(argv[1] + ".bc")
         check_call(command)
+        os.remove(argv[1] + ".bc")
 
     rmtree(temp_dir)
     exit(0)
