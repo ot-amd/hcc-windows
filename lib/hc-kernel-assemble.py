@@ -38,7 +38,6 @@ if __name__ == "__main__":
                 "e",
                 "-inul",
                 libpath + "/mcwamp.rar"])
-    
     p1 = Popen([llvm_link,
         "mcwamp.kernel.bc",
         argv[1]],
@@ -67,12 +66,11 @@ if __name__ == "__main__":
             clang_offload_bundler_input_args,
             clang_offload_bundler_targets_args,
             "-outputs=kernel.bundle"])
-
     source_code = os.path.basename(argv[1][:argv[1].rfind("-")]) + ".cpp"
     check_call(["inject_kernel",
         "kernel.bundle",
         "kernel_bundle_data.cpp"])
-    check_call(["cl",
+    check_call(["cl.exe",
         "kernel_bundle_data.cpp",
         "/nologo",
         "/c",

@@ -70,11 +70,20 @@ if __name__ == "__main__":
 
     if os.name == "nt":
         command = ["link",
+            "-verbose:lib",
+            "-debug",
             "-force:multiple",
             "-ignore:4006",
             "-ignore:4078",
             "-ignore:4088",
             "-subsystem:console",
+            "-nodefaultlib:libcmt",
+            "-stack:10000000",
+            "-heap:1000000000",
+            "ucrt.lib",
+            "vcruntime.lib",
+            "msvcrt.lib",
+            "msvcprt.lib",
             "kernel_bundle_data.obj"]
     else:
         command = ["ld",
@@ -82,13 +91,12 @@ if __name__ == "__main__":
 
     command += link_other_args
     command += link_host_args
-    check_call(command)
+    print(command)
+    call(command)
 
     os.remove("kernel_bundle_data.obj")
     os.remove("mcwamp.host.obj")
     os.remove("mcwamp.kernel.bc")
 
     exit(0)
-
-
 
