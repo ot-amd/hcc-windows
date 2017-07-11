@@ -149,11 +149,11 @@ private:
 };
 
 /**
- * \brief HSA runtime detection
+ * \brief PAL runtime detection
  */
-class HSAPlatformDetect : public PlatformDetect {
+class PALPlatformDetect : public PlatformDetect {
 public:
-  HSAPlatformDetect() : PlatformDetect("HSA", "libmcwamp_hsa.so",  (char *)kernel_binary_data + sizeof(int)) {}
+  PALPlatformDetect() : PlatformDetect("PAL", "mcwamp_pal.dll",  (char *)kernel_binary_data + sizeof(int)) {}
 };
 
 
@@ -162,18 +162,18 @@ public:
  */
 static bool mcwamp_verbose = false;
 
-static RuntimeImpl* LoadHSARuntime() {
+static RuntimeImpl* LoadPALRuntime() {
   RuntimeImpl* runtimeImpl = nullptr;
-  // load HSA C++AMP runtime
+  // load PAL C++AMP runtime
   if (mcwamp_verbose)
-    std::cout << "Use HSA runtime" << std::endl;
-  runtimeImpl = new RuntimeImpl("libmcwamp_hsa.so");
+    std::cout << "Use PAL runtime" << std::endl;
+  runtimeImpl = new RuntimeImpl("mcwamp_pal.dll");
   if (!runtimeImpl->m_RuntimeHandle) {
-    std::cerr << "Can't load HSA runtime!" << std::endl;
+    std::cerr << "Can't load PAL runtime!" << std::endl;
     delete runtimeImpl;
     exit(-1);
   } else {
-    //std::cout << "HSA C++AMP runtime loaded" << std::endl;
+    //std::cout << "PAL C++AMP runtime loaded" << std::endl;
   }
   return runtimeImpl;
 }
@@ -195,7 +195,7 @@ static RuntimeImpl* LoadCPURuntime() {
 RuntimeImpl* GetOrInitRuntime() {
   static RuntimeImpl* runtimeImpl = nullptr;
   if (runtimeImpl == nullptr) {
-    HSAPlatformDetect hsa_rt;
+    PALPlatformDetect pal_rt;
 
     char* verbose_env = getenv("HCC_VERBOSE");
     if (verbose_env != nullptr) {
@@ -207,9 +207,9 @@ RuntimeImpl* GetOrInitRuntime() {
     // force use certain C++AMP runtime from HCC_RUNTIME environment variable
     char* runtime_env = getenv("HCC_RUNTIME");
     if (runtime_env != nullptr) {
-      if (std::string("HSA") == runtime_env) {
-        if (hsa_rt.detect()) {
-          runtimeImpl = LoadHSARuntime();
+      if (std::string("PAL") == runtime_env) {
+        if (pal_rt.detect()) {
+          runtimeImpl = LoadPALRuntime();
         } else {
           std::cerr << "Ignore unsupported HCC_RUNTIME environment variable: " << runtime_env << std::endl;
         }
@@ -224,8 +224,8 @@ RuntimeImpl* GetOrInitRuntime() {
 
     // If can't determined by environment variable, try detect what can be used
     if (runtimeImpl == nullptr) {
-      if (hsa_rt.detect()) {
-        runtimeImpl = LoadHSARuntime();
+      if (pal_rt.detect()) {
+        runtimeImpl = LoadPALRuntime();
       } else {
           runtimeImpl = LoadCPURuntime();
           runtimeImpl->set_cpu();
@@ -377,7 +377,7 @@ void BuildProgram(KalmarQueue* pQueue) {
 
 // used in parallel_for_each.h
 void *CreateKernel(std::string s, KalmarQueue* pQueue) {
-  return pQueue->getDev()->CreateKernel(s.c_str());
+  return pQueue->getDev()->CreateKernel(s.c_str(), pQueue);
 }
 
 void PushArg(void *k_, int idx, size_t sz, const void *s) {

@@ -346,7 +346,7 @@ public:
     virtual void BuildProgram(void* size, void* source) {}
 
     /// create kernel
-    virtual void* CreateKernel(const char* fun) { return nullptr; }
+    virtual void* CreateKernel(const char* fun, KalmarQueue* pQueue) { return nullptr; }
 
     /// check if a given kernel is compatible with the device
     virtual bool IsCompatibleKernel(void* size, void* source) { return true; }
