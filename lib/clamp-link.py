@@ -80,10 +80,11 @@ if __name__ == "__main__":
             "-nodefaultlib:libcmt",
             "-stack:10000000",
             "-heap:1000000000",
-            "ucrt.lib",
-            "vcruntime.lib",
-            "msvcrt.lib",
-            "msvcprt.lib",
+            "-debug",
+            "ucrtd.lib",
+            "vcruntimed.lib",
+            "msvcrtd.lib",
+            "msvcprtd.lib",
             "kernel_bundle_data.obj"]
     else:
         command = ["ld",
