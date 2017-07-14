@@ -68,7 +68,7 @@ if __name__ == "__main__":
     f1.close()
     f2.close()
 
-    command += ["-c", "-o", argv[2]]
+    command += ["-gcodeview", "-c", "-o", argv[2]]
 
     if os.path.isfile(temp_name + ".host_redirect.ll") and (os.stat(temp_name + ".host_redirect.ll").st_size != 0):
         check_call([llvm_as,
